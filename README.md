@@ -72,7 +72,7 @@ module.exports = () => String(process.env.FOO)
 
 and every client can just execute this function.
 
-```
+```js
 process.env.FOO = 42
 const foo = require('./is-foo')()
 // foo is now '42'
@@ -82,7 +82,10 @@ But we can also easily make the module `is-foo` *self-destruct* from the `requir
 to force Node module system to reload an reevaluate its code. Just add a single line to
 the module.
 
-
+```js
+module.exports = String(process.env.FOO)
+require('unload-me')
+```
 
 ## Install
 

@@ -16,12 +16,12 @@ describe('unload-me demo', () => {
 
 it('returns FOO', () => {
   process.env.FOO = 'test'
-  const foo = require('./is-foo')()
+  const foo = require('./is-foo')
   snapshot(foo)
 })
 
 it('returns FOO as a string', () => {
   process.env.FOO = 42
-  const foo = require('./is-foo')()
+  const foo = require('./is-foo')
   snapshot(foo)
 })
