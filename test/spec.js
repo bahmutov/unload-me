@@ -5,12 +5,17 @@ const execa = require('execa-wrap')
 const snapshot = require('snap-shot-it')
 const join = require('path').join
 
+const normalizeCommand = output =>
+  output.replace(/command: node [\w/-]+/, 'command: node ...')
+
 describe('unload-me demo', () => {
   it('generates expected output', () => {
     // first module is cached
     // second module is re-evaluated
     const demoPath = join(__dirname, 'demo')
-    return execa('node', [demoPath]).then(snapshot)
+    return execa('node', [demoPath])
+      .then(normalizeCommand)
+      .then(snapshot)
   })
 })
 

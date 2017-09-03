@@ -1,9 +1,5 @@
-exports['returns FOO 1'] = `test`
-
-exports['returns FOO as a string 1'] = `42`
-
 exports['unload-me demo generates expected output 1'] = `
-  command: node /Users/irinakous/git/unload-me/test/demo
+  command: node ...
   code: 0
   failed: false
   killed: false
@@ -31,4 +27,8 @@ exports['unload-me demo generates expected output 1'] = `
   
   -------
   `
+
+exports['returns FOO 1'] = `test`
+
+exports['returns FOO as a string 1'] = `42`
 
