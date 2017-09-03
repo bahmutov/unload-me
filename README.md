@@ -8,6 +8,82 @@
 [![semantic-release][semantic-image] ][semantic-url]
 [![js-standard-style][standard-image]][standard-url]
 
+## Why
+
+Node `require` function for speed only evaluates each module once and stores
+the result (whatever the module `exports`) in the module cache. Sometimes this
+causes problems, for example if you really need to re-evaluate the module again.
+
+For example we might have a module that just reports if the environment variable
+is present
+
+```js
+// is-foo.js
+module.exports = String(process.env.FOO)
+```
+
+When testing this module, we might set `process.env.FOO` before the first test and it works
+
+```js
+it('returns FOO', () => {
+  process.env.FOO = 'test'
+  const foo = require('./is-foo')
+  expect(foo).to.be('test')
+})
+```
+
+But when we write another test it suddenly fails
+
+```js
+it('returns FOO as a string', () => {
+  process.env.FOO = 42
+  const foo = require('./is-foo')
+  expect(foo).to.be('42')
+})
+// Error:
+//   expect "test" to be "42"
+```
+
+Why is `foo` still the first value? Let us enable just the second test - and it passes!
+
+```js
+it.only('returns FOO as a string', () => {
+  process.env.FOO = 42
+  const foo = require('./is-foo')
+  expect(foo).to.be('42')
+})
+// passes!
+```
+
+This is a pesky test failure because it depends on the order of tests, something 
+[Rocha](https://github.com/bahmutov/rocha) can catch, but that is the point here.
+
+The point is that module `./is-foo` is executed only *once* in our tests. The second
+time we `require('./is-foo')` the code inside (the single statement 
+`module.exports = String(process.env.FOO)`) is NOT evaluated. Instead the cached value
+"test" is loaded and returned.
+
+We can avoid caching value by switching `is-foo` to return a function
+
+```js
+// is-foo
+module.exports = () => String(process.env.FOO)
+```
+
+and every client can just execute this function.
+
+```
+process.env.FOO = 42
+const foo = require('./is-foo')()
+// foo is now '42'
+```
+
+But we can also easily make the module `is-foo` *self-destruct* from the `require.cache`
+to force Node module system to reload an reevaluate its code. Just add a single line to
+the module.
+
+
+
 ## Install
 
 Requires [Node](https://nodejs.org/en/) version 6 or above.
@@ -17,6 +93,21 @@ npm install --save unload-me
 ```
 
 ## Use
+
+Just call `require('unload-me')` at the end of the module you want to "self-destruct".
+It will be re-evaluated next time someone requires it. 
+
+```js
+console.log('*** WITH unload this code runs every time')
+console.log('*** you call require("./with-unload")')
+module.exports = 'foo'
+// require 'unload-me' to remove this module
+// from require.cache and force loading and
+// evaluating it again
+require('unload-me')
+```
+
+See [test/demo.js](test/demo.js) for full example
 
 ### Small print
 
